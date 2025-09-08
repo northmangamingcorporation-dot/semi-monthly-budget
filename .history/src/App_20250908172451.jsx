@@ -86,14 +86,14 @@ function monthKey(d) {
 function assignToPaycheck(dueDay, p1, p2, year, monthIndex) {
   const d1 = clampDay(p1, year, monthIndex);
   const d2 = clampDay(p2, year, monthIndex);
-
-  const first = Math.min(d1, d2);
-  const second = Math.max(d1, d2);
-
-  if (dueDay > first && dueDay <= second) return 1; // after first → paycheck 1
-  if (dueDay > second || dueDay <= first) return 2; // after second → paycheck 2
+  // Normalize so p1 < p2
+  let first = Math.min(d1, d2);
+  let second = Math.max(d1, d2);
+  if (dueDay <= second && dueDay > first) return 2;
+  if (dueDay <= first) return 1;
+  // If due after second, it's owed before next month's p1 -> paycheck 2 covers it now
+  return 2;
 }
-
 
 function currency(n) {
   if (Number.isNaN(n)) return "₱0";
@@ -552,7 +552,7 @@ export default function SemiMonthlyBudgetApp() {
               <ExpensesTable items={p1Items} onDelete={deleteExpense} />
             </Section>
 
-            <Section title="Bills After Payday #2" icon={Calendar} right={<Badge variant="outline">Total: {currency(p2Total)}</Badge>}>
+            <Section title="Bills before Payday #2" icon={Calendar} right={<Badge variant="outline">Total: {currency(p2Total)}</Badge>}>
               <ExpensesTable items={p2Items} onDelete={deleteExpense} />
             </Section>
           </div>
